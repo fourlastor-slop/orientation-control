@@ -1,0 +1,53 @@
+name: Publish a release
+on:
+  push:
+    branches: [ main ]
+
+# a newer push takes over from a build still running
+concurrency:
+  group: publish
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Build
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$ANDROID_KEYSTORE_PATH"
+          ./gradlew --no-configuration-cache assembleRelease
+          mv app/build/outputs/apk/release/app-release.apk OrientationControl.apk
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: bellwater
+          VERSION_CODE: ${{ github.run_number }}
+
+      # an unsigned APK can't be installed: stop before it reaches the release
+      - name: Check the signature
+        run: |
+          tools="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          "$tools/apksigner" verify --print-certs OrientationControl.apk
+          "$tools/aapt2" dump badging OrientationControl.apk | grep -E "^package|targetSdk|application-label:"
+
+      - name: Release 🚀
+        run: |
+          gh release create "v1.${{ github.run_number }}" OrientationControl.apk \
+            --target "$GITHUB_SHA" \
+            --title "Orientation Control 1.${{ github.run_number }}" \
+            --notes "Built from $(git rev-parse --short HEAD)."
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Orientation Control</string>
+    <string name="tile_portrait">Portrait</string>
+    <string name="tile_reverse">Reverse portrait</string>
+    <string name="tile_landscape">Landscape</string>
+    <string name="tile_auto">Auto-rotate</string>
+
+    <string name="permission_title">Allow changing the rotation</string>
+    <string name="permission_body">Rotation lives in the system settings. Turn on \"Modify system settings\" for this app, then come back.</string>
+    <string name="permission_action">Open settings</string>
+    <string name="auto_rotate_summary">Follow the accelerometer</string>
+    <string name="lock_header">Lock to</string>
+    <string name="lock_hint_auto">Picking one turns auto-rotate off.</string>
+    <string name="tiles_header">Quick Settings tiles</string>
+    <string name="tiles_body">Add any of these to Quick Settings to switch without opening the app.</string>
+</resources>

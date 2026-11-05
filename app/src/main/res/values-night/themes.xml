@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.Orientation" parent="android:Theme.Material.NoActionBar" />
+</resources>

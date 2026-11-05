@@ -1,0 +1,8 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <!-- the slot cut in the top bezel marks the top, so the reversed icon reads as upside down -->
+    <group android:pivotX="12" android:pivotY="12" android:rotation="180">
+        <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:pathData="M17,1H7C5.9,1 5,1.9 5,3v18c0,1.1 0.9,2 2,2h10c1.1,0 2,-0.9 2,-2V3C19,1.9 18.1,1 17,1zM17,19H7V5h10V19zM10,2.5h4v1h-4z" />
+    </group>
+</vector>
