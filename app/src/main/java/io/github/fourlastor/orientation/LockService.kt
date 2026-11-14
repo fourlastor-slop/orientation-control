@@ -164,9 +164,13 @@ class LockService : Service() {
     companion object {
         private const val CHANNEL_ID = "lock"
         private const val NOTIFICATION_ID = 1
-        private const val FULLSCREEN_SETTLE_MS = 500L
-        // Long enough for the window manager to really rotate, short enough to be just a blink.
-        private const val FLIP_BACK_MS = 300L
+        // Only to skip a status bar that merely blinks: flipping right as fullscreen starts already
+        // fixes the layout (tried on a HyperOS tablet), and this is time the video sits at the top.
+        private const val FULLSCREEN_SETTLE_MS = 150L
+        // Just enough for the window manager to see the first write on its own (writes ~60ms apart
+        // were enough on the tablet). It doesn't shorten the flip: the second rotation waits for the
+        // first one's animation anyway, about 0.6s.
+        private const val FLIP_BACK_MS = 100L
 
         private fun shouldHold(context: Context) = !Rotation.isAuto(context) && Rotation.canOverride(context)
 
