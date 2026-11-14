@@ -19,6 +19,12 @@ still rotates the screen. With **Display over other apps** allowed too, the lock
 ranks above the app's own request and resolves to `user_rotation`. It runs as a foreground service (with a
 silent notification), stops when auto-rotate comes back on from anywhere, and starts again after a reboot.
 
+An app that asked for another orientation when going fullscreen can then sit waiting for a rotation that
+never comes: YouTube in Firefox leaves the video at the top of the screen. So when an app hides the status bar
+while locked, the service turns the screen upside down and back (about half a second), an orientation change
+of the same size that gets the app to lay itself out again. No permission lets one app make another relayout,
+and nothing tells it which app asked, so this happens for every app going fullscreen.
+
 `user_rotation` counts from the panel's natural orientation, so the app reads it from the display: on a
 portrait-first device Portrait/Landscape/Reverse portrait are 0/1/2, on a landscape-first tablet they are 1/0/3.
 Locking also turns `accelerometer_rotation` off, since `user_rotation` is ignored while it's on.

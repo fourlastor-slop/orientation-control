@@ -18,6 +18,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
+import android.view.WindowInsets
 import android.view.WindowManager
 
 /**
@@ -33,6 +34,8 @@ class LockService : Service() {
         override fun onChange(selfChange: Boolean) = hold()
     }
     private var overlay: View? = null
+    private var statusBarVisible = true
+    private val flip = Runnable { flipUpsideDownAndBack() }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -59,6 +62,7 @@ class LockService : Service() {
 
     override fun onDestroy() {
         contentResolver.unregisterContentObserver(observer)
+        overlay?.handler?.removeCallbacks(flip)
         overlay?.let { getSystemService(WindowManager::class.java).removeView(it) }
         overlay = null
         super.onDestroy()
@@ -89,12 +93,52 @@ class LockService : Service() {
         val windowManager = getSystemService(WindowManager::class.java)
         try {
             overlay?.let { windowManager.updateViewLayout(it, params) }
-                ?: View(this).also { windowManager.addView(it, params) }.let { overlay = it }
+                ?: View(this).also {
+                    it.setOnApplyWindowInsetsListener { _, insets ->
+                        onStatusBarVisible(insets.isVisible(WindowInsets.Type.statusBars()))
+                        insets
+                    }
+                    windowManager.addView(it, params)
+                }.let { overlay = it }
         } catch (e: RuntimeException) {
             // The overlay permission was taken away while running: fall back to the settings alone.
             overlay = null
             stopSelf()
         }
+    }
+
+    /**
+     * An app that asked for another orientation when going fullscreen can sit waiting for the
+     * rotation that the lock now never gives it: YouTube in Firefox leaves the video at the top,
+     * laid out for the page it came from, until the orientation changes. The overlay can't tell
+     * which app asked, but it sees the status bar go when any app goes fullscreen.
+     */
+    private fun onStatusBarVisible(visible: Boolean) {
+        val handler = overlay?.handler ?: return
+        if (!visible && statusBarVisible) {
+            // Only once the fullscreen settles, so a passing hide doesn't flip the screen.
+            handler.postDelayed(flip, FULLSCREEN_SETTLE_MS)
+        } else if (visible) {
+            handler.removeCallbacks(flip)
+        }
+        statusBarVisible = visible
+    }
+
+    /**
+     * Turns the screen upside down and back: an orientation change of the same size, which gets the
+     * app to lay itself out again without ever leaving the locked orientation's shape.
+     */
+    private fun flipUpsideDownAndBack() {
+        if (!shouldHold(this)) return
+        val locked = Rotation.current(this)
+        val upsideDown = (locked + 2) % 4
+        Settings.System.putInt(contentResolver, Settings.System.USER_ROTATION, upsideDown)
+        overlay?.postDelayed({
+            // Unless the lock was changed meanwhile.
+            if (Rotation.current(this) == upsideDown) {
+                Settings.System.putInt(contentResolver, Settings.System.USER_ROTATION, locked)
+            }
+        }, FLIP_BACK_MS)
     }
 
     private fun notification(): Notification {
@@ -120,6 +164,9 @@ class LockService : Service() {
     companion object {
         private const val CHANNEL_ID = "lock"
         private const val NOTIFICATION_ID = 1
+        private const val FULLSCREEN_SETTLE_MS = 500L
+        // Long enough for the window manager to really rotate, short enough to be just a blink.
+        private const val FLIP_BACK_MS = 300L
 
         private fun shouldHold(context: Context) = !Rotation.isAuto(context) && Rotation.canOverride(context)
 
