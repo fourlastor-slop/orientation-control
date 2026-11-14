@@ -115,7 +115,7 @@ class LockService : Service() {
      */
     private fun onStatusBarVisible(visible: Boolean) {
         val handler = overlay?.handler ?: return
-        if (!visible && statusBarVisible) {
+        if (!visible && statusBarVisible && flipsOnFullscreen(this)) {
             // Only once the fullscreen settles, so a passing hide doesn't flip the screen.
             handler.postDelayed(flip, FULLSCREEN_SETTLE_MS)
         } else if (visible) {
@@ -172,7 +172,23 @@ class LockService : Service() {
         // first one's animation anyway, about 0.6s.
         private const val FLIP_BACK_MS = 100L
 
+        private const val PREFS = "lock"
+        private const val KEY_FLIP_ON_FULLSCREEN = "flip_on_fullscreen"
+
         private fun shouldHold(context: Context) = !Rotation.isAuto(context) && Rotation.canOverride(context)
+
+        /**
+         * Whether to flip when an app goes fullscreen. On unless turned off: someone fixing their
+         * one app another way (the YouTube userscript, say) can spare every other app the flip.
+         */
+        fun flipsOnFullscreen(context: Context): Boolean =
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_FLIP_ON_FULLSCREEN, true)
+
+        fun setFlipsOnFullscreen(context: Context, enabled: Boolean) {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putBoolean(KEY_FLIP_ON_FULLSCREEN, enabled)
+                .apply()
+        }
 
         /** Starts holding the lock when the settings say locked; otherwise the service stops itself. */
         fun sync(context: Context) {

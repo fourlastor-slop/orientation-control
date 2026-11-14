@@ -23,7 +23,8 @@ An app that asked for another orientation when going fullscreen can then sit wai
 never comes: YouTube in Firefox leaves the video at the top of the screen. So when an app hides the status bar
 while locked, the service turns the screen upside down and back (about half a second), an orientation change
 of the same size that gets the app to lay itself out again. No permission lets one app make another relayout,
-and nothing tells it which app asked, so this happens for every app going fullscreen.
+and nothing tells it which app asked, so this happens for every app going fullscreen. The app has a switch to
+turn it off, for when the apps that need it are fixed another way (like YouTube below).
 
 ### YouTube in Firefox
 

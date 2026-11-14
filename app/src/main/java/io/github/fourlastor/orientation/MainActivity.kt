@@ -52,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -209,6 +210,28 @@ private fun OrientationScreen(onOpen: (Intent) -> Unit) {
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+                // The flip only exists while the override holds the lock.
+                if (canWrite && canOverride) {
+                    var flips by remember { mutableStateOf(LockService.flipsOnFullscreen(context)) }
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    ) {
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.flip_title)) },
+                            supportingContent = { Text(stringResource(R.string.flip_summary)) },
+                            trailingContent = {
+                                Switch(
+                                    checked = flips,
+                                    onCheckedChange = {
+                                        LockService.setFlipsOnFullscreen(context, it)
+                                        flips = it
+                                    },
+                                )
+                            },
+                            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                        )
+                    }
                 }
 
                 if (Build.VERSION.SDK_INT >= 33) {

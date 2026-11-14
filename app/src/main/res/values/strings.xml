@@ -11,6 +11,8 @@
     <string name="override_title">Keep the lock when apps ask to rotate</string>
     <string name="override_body">Fullscreen videos and some apps can still rotate the screen while it\'s locked. Allow \"Display over other apps\" and the lock wins: an invisible pixel holds the orientation while it\'s locked.</string>
     <string name="override_action">Allow</string>
+    <string name="flip_title">Flip when apps go fullscreen</string>
+    <string name="flip_summary">Turns the screen upside down and back for a moment, so apps that expected to rotate, like fullscreen videos, lay themselves out again</string>
     <string name="lock_channel">Rotation lock</string>
     <string name="lock_notification_title">Rotation locked</string>
     <string name="lock_notification_text">Keeping it locked even when apps ask to rotate</string>
