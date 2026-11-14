@@ -2,6 +2,7 @@ package io.github.fourlastor.orientation
 
 import android.app.StatusBarManager
 import android.content.ComponentName
+import android.content.Intent
 import android.database.ContentObserver
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -69,7 +70,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             OrientationTheme {
-                OrientationScreen(onGrant = { startActivity(Rotation.permissionIntent(this)) })
+                OrientationScreen(onOpen = { startActivity(it) })
             }
         }
     }
@@ -102,12 +103,14 @@ private val tiles = listOf(
 )
 
 @Composable
-private fun OrientationScreen(onGrant: () -> Unit) {
+private fun OrientationScreen(onOpen: (Intent) -> Unit) {
     val context = LocalContext.current
     // Bumped whenever something outside Compose may have changed: the settings or the permission.
     var version by remember { mutableIntStateOf(0) }
     LifecycleResumeEffect(Unit) {
         version++
+        // Picks the lock back up after a permission was granted, or the process was gone.
+        LockService.sync(context)
         onPauseOrDispose {}
     }
     DisposableEffect(Unit) {
@@ -123,6 +126,7 @@ private fun OrientationScreen(onGrant: () -> Unit) {
     }
 
     val canWrite = remember(version) { Rotation.canWrite(context) }
+    val canOverride = remember(version) { Rotation.canOverride(context) }
     val auto = remember(version) { Rotation.isAuto(context) }
     val locked = remember(version) {
         if (auto) null else Rotation.Orientation.of(context, Rotation.current(context))
@@ -147,7 +151,23 @@ private fun OrientationScreen(onGrant: () -> Unit) {
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
-                if (!canWrite) PermissionCard(onGrant)
+                if (!canWrite) {
+                    PermissionCard(
+                        title = R.string.permission_title,
+                        body = R.string.permission_body,
+                        action = R.string.permission_action,
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        onClick = { onOpen(Rotation.permissionIntent(context)) },
+                    )
+                } else if (!canOverride) {
+                    PermissionCard(
+                        title = R.string.override_title,
+                        body = R.string.override_body,
+                        action = R.string.override_action,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        onClick = { onOpen(Rotation.overridePermissionIntent(context)) },
+                    )
+                }
 
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
@@ -234,13 +254,19 @@ private fun SectionHeader(@StringRes text: Int) {
 }
 
 @Composable
-private fun PermissionCard(onGrant: () -> Unit) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+private fun PermissionCard(
+    @StringRes title: Int,
+    @StringRes body: Int,
+    @StringRes action: Int,
+    containerColor: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit,
+) {
+    Card(colors = CardDefaults.cardColors(containerColor = containerColor)) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.permission_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.permission_body), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(body), style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(4.dp))
-            Button(onClick = onGrant) { Text(stringResource(R.string.permission_action)) }
+            Button(onClick = onClick) { Text(stringResource(action)) }
         }
     }
 }

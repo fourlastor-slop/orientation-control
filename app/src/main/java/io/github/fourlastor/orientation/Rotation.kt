@@ -38,11 +38,20 @@ object Rotation {
         Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:${context.packageName}"))
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
+    /** Whether the lock can also win over apps that ask for an orientation (see [LockService]). */
+    fun canOverride(context: Context): Boolean = Settings.canDrawOverlays(context)
+
+    fun overridePermissionIntent(context: Context): Intent =
+        Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context.packageName}"))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
     fun isAuto(context: Context): Boolean =
         Settings.System.getInt(context.contentResolver, Settings.System.ACCELEROMETER_ROTATION, 0) == 1
 
     fun setAuto(context: Context, enabled: Boolean) {
         Settings.System.putInt(context.contentResolver, Settings.System.ACCELEROMETER_ROTATION, if (enabled) 1 else 0)
+        // Turning auto-rotate back on needs nothing more: the service sees it and lets go.
+        if (!enabled) LockService.sync(context)
     }
 
     fun current(context: Context): Int =
@@ -57,5 +66,6 @@ object Rotation {
         Settings.System.putInt(context.contentResolver, Settings.System.USER_ROTATION, value)
         setAuto(context, false)
         Settings.System.putInt(context.contentResolver, Settings.System.USER_ROTATION, value)
+        LockService.sync(context)
     }
 }

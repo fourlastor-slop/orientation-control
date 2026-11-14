@@ -8,6 +8,12 @@
     <string name="permission_title">Allow changing the rotation</string>
     <string name="permission_body">Rotation lives in the system settings. Turn on \"Modify system settings\" for this app, then come back.</string>
     <string name="permission_action">Open settings</string>
+    <string name="override_title">Keep the lock when apps ask to rotate</string>
+    <string name="override_body">Fullscreen videos and some apps can still rotate the screen while it\'s locked. Allow \"Display over other apps\" and the lock wins: an invisible pixel holds the orientation while it\'s locked.</string>
+    <string name="override_action">Allow</string>
+    <string name="lock_channel">Rotation lock</string>
+    <string name="lock_notification_title">Rotation locked</string>
+    <string name="lock_notification_text">Keeping it locked even when apps ask to rotate</string>
     <string name="auto_rotate_summary">Follow the accelerometer</string>
     <string name="lock_header">Lock to</string>
     <string name="lock_hint_auto">Picking one turns auto-rotate off.</string>
