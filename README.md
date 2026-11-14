@@ -25,6 +25,15 @@ while locked, the service turns the screen upside down and back (about half a se
 of the same size that gets the app to lay itself out again. No permission lets one app make another relayout,
 and nothing tells it which app asked, so this happens for every app going fullscreen.
 
+### YouTube in Firefox
+
+For YouTube in Firefox there's a fix without the flip, inside the page:
+[`userscripts/youtube-fullscreen-center.user.js`](userscripts/youtube-fullscreen-center.user.js) sends the page a
+`resize` just after it goes fullscreen, which is all YouTube's player needs to centre the video. To install it,
+add [Violentmonkey](https://addons.mozilla.org/android/addon/violentmonkey/) to Firefox, then open
+[the script's raw link](https://raw.githubusercontent.com/fourlastor-slop/orientation-control/main/userscripts/youtube-fullscreen-center.user.js)
+and confirm.
+
 `user_rotation` counts from the panel's natural orientation, so the app reads it from the display: on a
 portrait-first device Portrait/Landscape/Reverse portrait are 0/1/2, on a landscape-first tablet they are 1/0/3.
 Locking also turns `accelerometer_rotation` off, since `user_rotation` is ignored while it's on.
